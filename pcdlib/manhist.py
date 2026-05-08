@@ -1,270 +1,20 @@
+# pcdlib.py
+# Library Pengolahan Citra Digital
+# Author: Ara ✨
+
 import numpy as np
-import cv2 as cv
 import matplotlib.pyplot as plt
 
-def equalization(image):
-    # histogram
-    hist = np.zeros(256)
 
-    for y in range(image.shape[0]):
-        for x in range(image.shape[1]):
-            hist[image[y, x]] += 1
-
-    # normalisasi histogram
-    hist = hist / image.size
-
-    # cumulative distribution function
-    cdf = np.zeros(256)
-    cdf[0] = hist[0]
-
-    for i in range(1, 256):
-        cdf[i] = cdf[i - 1] + hist[i]
-
-    # mapping
-    transform = np.round(cdf * 255).astype(np.uint8)
-
-    # hasil equalization
-    hasil = np.zeros_like(image)
-
-    for y in range(image.shape[0]):
-        for x in range(image.shape[1]):
-            hasil[y, x] = transform[image[y, x]]
-
-    return hasil
-
-def ekualisasi(citra):
-
-    height, width = citra.shape
-
-    hist = np.zeros(256, dtype=int)
-
-    # hitung histogram
-    for y in range(height):
-        for x in range(width):
-            pixel = citra[y, x]
-            hist[pixel] += 1
-
-    cdf = np.zeros(256, dtype=int)
-    cdf[0] = hist[0]
-
-    # hitung CDF
-    for i in range(1, 256):
-        cdf[i] = cdf[i - 1] + hist[i]
-
-    cdf_normal = np.round(
-        cdf * 255 / (height * width)
-    ).astype(np.uint8)
-
-    hasil = np.zeros_like(citra, dtype=np.uint8)
-
-    # mapping hasil ekualisasi
-    for y in range(height):
-        for x in range(width):
-            hasil[y, x] = cdf_normal[citra[y, x]]
-
-    return hasil
-
-def specification(source, reference):
-
-    # histogram source
-    hist_source = np.zeros(256)
-
-    for y in range(source.shape[0]):
-        for x in range(source.shape[1]):
-            hist_source[source[y, x]] += 1
-
-    hist_source /= source.size
-
-    # histogram reference
-    hist_ref = np.zeros(256)
-
-    for y in range(reference.shape[0]):
-        for x in range(reference.shape[1]):
-            hist_ref[reference[y, x]] += 1
-
-    hist_ref /= reference.size
-
-    # CDF source
-    cdf_source = np.zeros(256)
-    cdf_source[0] = hist_source[0]
-
-    for i in range(1, 256):
-        cdf_source[i] = cdf_source[i - 1] + hist_source[i]
-
-    # CDF reference
-    cdf_ref = np.zeros(256)
-    cdf_ref[0] = hist_ref[0]
-
-    for i in range(1, 256):
-        cdf_ref[i] = cdf_ref[i - 1] + hist_ref[i]
-
-    # mapping
-    mapping = np.zeros(256, dtype=np.uint8)
-
-    for i in range(256):
-
-        selisih = np.abs(cdf_source[i] - cdf_ref)
-        mapping[i] = np.argmin(selisih)
-
-    # hasil
-    hasil = np.zeros_like(source)
-
-    for y in range(source.shape[0]):
-        for x in range(source.shape[1]):
-            hasil[y, x] = mapping[source[y, x]]
-
-    return hasil
-
-def spesifikasi_histogram(citra_asal, citra_target):
-
-    hist_asal = np.zeros(256, dtype=int)
-    hist_target = np.zeros(256, dtype=int)
-
-    # hitung histogram citra asal
-    for y in range(citra_asal.shape[0]):
-        for x in range(citra_asal.shape[1]):
-            pixel = citra_asal[y, x]
-            hist_asal[pixel] += 1
-
-    # hitung histogram citra target
-    for y in range(citra_target.shape[0]):
-        for x in range(citra_target.shape[1]):
-            pixel = citra_target[y, x]
-            hist_target[pixel] += 1
-
-    cdf_asal = np.zeros(256, dtype=float)
-    cdf_target = np.zeros(256, dtype=float)
-
-    cdf_asal[0] = hist_asal[0]
-    cdf_target[0] = hist_target[0]
-
-    # hitung CDF
-    for i in range(1, 256):
-        cdf_asal[i] = cdf_asal[i - 1] + hist_asal[i]
-        cdf_target[i] = cdf_target[i - 1] + hist_target[i]
-
-    cdf_asal = cdf_asal / cdf_asal[-1]
-    cdf_target = cdf_target / cdf_target[-1]
-
-    map_hist = np.zeros(256, dtype=np.uint8)
-
-    # mapping histogram
-    for i in range(256):
-
-        selisih = np.abs(cdf_asal[i] - cdf_target)
-        map_hist[i] = np.argmin(selisih)
-
-    height, width = citra_asal.shape
-    hasil = np.zeros((height, width), dtype=np.uint8)
-
-    # terapkan mapping
-    for y in range(height):
-        for x in range(width):
-            hasil[y, x] = map_hist[citra_asal[y, x]]
-
-    return hasil
-
-
-def ekualisasi_histogram(citra):
-    import numpy as np
-
-    height, width = citra.shape
-
-    hist = np.zeros(256, dtype=int)
-
-    # hitung histogram citra
-    for y in range(height):
-        for x in range(width):
-            pixel = citra[y, x]
-            hist[pixel] += 1
-
-    cdf = np.zeros(256, dtype=int)
-    cdf[0] = hist[0]
-
-    # hitung CDF
-    for i in range(1, 256):
-        cdf[i] = cdf[i - 1] + hist[i]
-
-    # normalisasi CDF
-    cdf_normal = np.round(cdf * 255 / (height * width)).astype(np.uint8)
-
-    hasil = np.zeros_like(citra, dtype=np.uint8)
-
-    # terapkan hasil CDF normalisasi ke citra
-    for y in range(height):
-        for x in range(width):
-            pixel = citra[y, x]
-            hasil[y, x] = cdf_normal[pixel]
-
-    return hasil
-
-def buat_hist(citra): 
-    histogram = [0] * 256 
-
-    height = len(citra) 
-    width = len(citra[0]) if height > 0 else 0 
-    for i in range(height): 
-        for j in range(width): 
-            val = int(citra[i][j])   
-            histogram[val] += 1   
-
-    return histogram 
-
-def ekualisasi_rgb(citra):
-    import numpy as np
-
-    # pisahkan channel BGR
-    b = citra[:, :, 0]
-    g = citra[:, :, 1]
-    r = citra[:, :, 2]
-
-    def equal_channel(channel):
-
-        height, width = channel.shape
-
-        # histogram
-        hist = np.zeros(256, dtype=int)
-
-        for y in range(height):
-            for x in range(width):
-                pixel = channel[y, x]
-                hist[pixel] += 1
-
-        # CDF
-        cdf = np.zeros(256, dtype=int)
-        cdf[0] = hist[0]
-
-        for i in range(1, 256):
-            cdf[i] = cdf[i - 1] + hist[i]
-
-        # normalisasi
-        cdf_normal = np.round(
-            cdf * 255 / (height * width)
-        ).astype(np.uint8)
-
-        # hasil channel
-        hasil = np.zeros_like(channel, dtype=np.uint8)
-
-        for y in range(height):
-            for x in range(width):
-                pixel = channel[y, x]
-                hasil[y, x] = cdf_normal[pixel]
-
-        return hasil
-
-    # equalization tiap channel
-    b_eq = equal_channel(b)
-    g_eq = equal_channel(g)
-    r_eq = equal_channel(r)
-
-    # gabungkan lagi channel
-    hasil = np.zeros_like(citra)
-
-    hasil[:, :, 0] = b_eq
-    hasil[:, :, 1] = g_eq
-    hasil[:, :, 2] = r_eq
-
-    return hasil
+def plot_histo_double(title, histo1, label1, ImgColor1, histo2, label2, ImgColor2):
+    plt.figure(figsize=(10, 5)) 
+    plt.xlabel("Intensitas Piksel") 
+    plt.title(title) 
+    plt.ylabel("Jumlah Piksel") 
+    plt.bar(range(256), histo1, color=ImgColor1, width=0.8, label=label1) 
+    plt.bar(range(256), histo2, color=ImgColor2, width=0.8, label=label2) 
+    plt.legend()
+    plt.show()
 
 def plot_histogram(histogram, title, ImgColor): 
     plt.figure(figsize=(10, 5)) 
@@ -274,7 +24,323 @@ def plot_histogram(histogram, title, ImgColor):
     plt.bar(range(256), histogram, color=ImgColor, width=0.8) 
     plt.show()
 
-def change_bg(img1, img2):
+# =========================================================
+# UTILITAS DASAR
+# =========================================================
+
+def _clip(val):
+    return np.clip(val, 0, 255).astype(np.uint8)
+
+
+def _is_grayscale(img):
+    return len(img.shape) == 2
+
+
+def _is_rgb(img):
+    return len(img.shape) == 3 and img.shape[2] == 3
+
+
+def rgb_to_grayscale(img):
+    """
+    Konversi RGB ke grayscale
+    """
+    if not _is_rgb(img):
+        raise ValueError("Input harus citra RGB")
+
+    gray = (
+        0.299 * img[:, :, 0] +
+        0.587 * img[:, :, 1] +
+        0.114 * img[:, :, 2]
+    )
+
+    return _clip(gray)
+
+
+def grayscale_to_rgb(img):
+    """
+    Konversi grayscale ke RGB
+    """
+    if not _is_grayscale(img):
+        raise ValueError("Input harus grayscale")
+
+    return np.stack([img, img, img], axis=2)
+
+
+# =========================================================
+# HISTOGRAM
+# =========================================================
+
+def histogram_grayscale(img):
+    hist = np.zeros(256, dtype=int)
+
+    for pixel in img.flatten():
+        hist[pixel] += 1
+
+    return hist
+
+
+def cumulative_histogram(hist):
+    cdf = np.cumsum(hist)
+    return cdf
+
+
+# =========================================================
+# 1. EKUALISASI GRAYSCALE
+# =========================================================
+
+def equalization_grayscale(img):
+    """
+    Ekualisasi histogram grayscale
+    """
+
+    if not _is_grayscale(img):
+        raise ValueError("Input harus grayscale")
+
+    hist = histogram_grayscale(img)
+
+    cdf = cumulative_histogram(hist)
+
+    cdf_normalized = (cdf - cdf.min()) * 255 / (cdf.max() - cdf.min())
+
+    cdf_normalized = cdf_normalized.astype(np.uint8)
+
+    result = cdf_normalized[img]
+
+    return result
+
+
+# =========================================================
+# 2. EKUALISASI RGB
+# =========================================================
+
+def equalization_rgb(img):
+    """
+    Ekualisasi histogram RGB per channel
+    """
+
+    if not _is_rgb(img):
+        raise ValueError("Input harus RGB")
+
+    result = np.zeros_like(img)
+
+    for c in range(3):
+        result[:, :, c] = equalization_grayscale(img[:, :, c])
+
+    return result
+
+
+# =========================================================
+# SPESIFIKASI HISTOGRAM
+# =========================================================
+
+def _create_mapping(source_hist, target_hist):
+
+    source_cdf = cumulative_histogram(source_hist)
+    target_cdf = cumulative_histogram(target_hist)
+
+    source_cdf = source_cdf / source_cdf[-1]
+    target_cdf = target_cdf / target_cdf[-1]
+
+    mapping = np.zeros(256, dtype=np.uint8)
+
+    for i in range(256):
+
+        diff = np.abs(target_cdf - source_cdf[i])
+
+        mapping[i] = np.argmin(diff)
+
+    return mapping
+
+
+# =========================================================
+# 3. SPESIFIKASI GRAYSCALE TO GRAYSCALE
+# =========================================================
+
+def specification_gray_to_gray(source, target):
+
+    if not _is_grayscale(source):
+        raise ValueError("Source harus grayscale")
+
+    if not _is_grayscale(target):
+        raise ValueError("Target harus grayscale")
+
+    source_hist = histogram_grayscale(source)
+    target_hist = histogram_grayscale(target)
+
+    mapping = _create_mapping(source_hist, target_hist)
+
+    result = mapping[source]
+
+    return result
+
+
+# =========================================================
+# 4. SPESIFIKASI GRAYSCALE TO RGB
+# HASIL RGB
+# =========================================================
+
+def specification_gray_to_rgb(source, target):
+
+    if not _is_grayscale(source):
+        raise ValueError("Source harus grayscale")
+
+    if not _is_rgb(target):
+        raise ValueError("Target harus RGB")
+
+    source_rgb = grayscale_to_rgb(source)
+
+    result = np.zeros_like(source_rgb)
+
+    for c in range(3):
+
+        source_hist = histogram_grayscale(source_rgb[:, :, c])
+        target_hist = histogram_grayscale(target[:, :, c])
+
+        mapping = _create_mapping(source_hist, target_hist)
+
+        result[:, :, c] = mapping[source_rgb[:, :, c]]
+
+    return result
+
+
+# =========================================================
+# 5. SPESIFIKASI RGB TO GRAYSCALE
+# HASIL GRAYSCALE
+# =========================================================
+
+def specification_rgb_to_gray(source, target):
+
+    if not _is_rgb(source):
+        raise ValueError("Source harus RGB")
+
+    if not _is_grayscale(target):
+        raise ValueError("Target harus grayscale")
+
+    source_gray = rgb_to_grayscale(source)
+
+    source_hist = histogram_grayscale(source_gray)
+    target_hist = histogram_grayscale(target)
+
+    mapping = _create_mapping(source_hist, target_hist)
+
+    result = mapping[source_gray]
+
+    return result
+
+
+# =========================================================
+# 6. SPESIFIKASI RGB TO RGB
+# =========================================================
+
+def specification_rgb_to_rgb(source, target):
+
+    if not _is_rgb(source):
+        raise ValueError("Source harus RGB")
+
+    if not _is_rgb(target):
+        raise ValueError("Target harus RGB")
+
+    result = np.zeros_like(source)
+
+    for c in range(3):
+
+        source_hist = histogram_grayscale(source[:, :, c])
+        target_hist = histogram_grayscale(target[:, :, c])
+
+        mapping = _create_mapping(source_hist, target_hist)
+
+        result[:, :, c] = mapping[source[:, :, c]]
+
+    return result
+
+
+# =========================================================
+# 7. MASKING GRAYSCALE TO GRAYSCALE
+# =========================================================
+
+def masking_gray_to_gray(image, mask):
+    """
+    image  : grayscale
+    mask   : grayscale
+    hasil  : grayscale
+    """
+
+    if not _is_grayscale(image):
+        raise ValueError("Image harus grayscale")
+
+    if not _is_grayscale(mask):
+        raise ValueError("Mask harus grayscale")
+
+    if image.shape != mask.shape:
+        raise ValueError("Ukuran image dan mask harus sama")
+
+    normalized_mask = mask / 255.0
+
+    result = image * normalized_mask
+
+    return _clip(result)
+
+
+# =========================================================
+# 8. MASKING GRAY TO RGB
+# HASIL GRAYSCALE
+# =========================================================
+
+def masking_gray_to_rgb_gray_result(image, mask):
+    """
+    image  : grayscale
+    mask   : RGB
+    hasil  : grayscale
+    """
+
+    if not _is_grayscale(image):
+        raise ValueError("Image harus grayscale")
+
+    if not _is_rgb(mask):
+        raise ValueError("Mask harus RGB")
+
+    mask_gray = rgb_to_grayscale(mask)
+
+    if image.shape != mask_gray.shape:
+        raise ValueError("Ukuran image dan mask harus sama")
+
+    normalized_mask = mask_gray / 255.0
+
+    result = image * normalized_mask
+
+    return _clip(result)
+
+
+# =========================================================
+# 9. MASKING GRAY TO RGB
+# HASIL RGB
+# =========================================================
+
+def masking_gray_to_rgb_rgb_result(image, mask):
+    """
+    image  : grayscale
+    mask   : RGB
+    hasil  : RGB
+    """
+
+    if not _is_grayscale(image):
+        raise ValueError("Image harus grayscale")
+
+    if not _is_rgb(mask):
+        raise ValueError("Mask harus RGB")
+
+    image_rgb = grayscale_to_rgb(image)
+
+    if image_rgb.shape != mask.shape:
+        raise ValueError("Ukuran image dan mask harus sama")
+
+    normalized_mask = mask / 255.0
+
+    result = image_rgb * normalized_mask
+
+    return _clip(result)
+
+def change_bg_gb(img1, img2):
     hasil = np.zeros_like(img1, dtype=int) 
     for i in range(hasil.shape[0]): 
         for j in range(hasil.shape[1]): 
@@ -283,7 +349,7 @@ def change_bg(img1, img2):
     # plt.imshow(hasil, cmap="gray") 
     return hasil
 
-def masking(gray, bg):
+def masking_gb(gray, bg):
 
     h, w = gray.shape
     hb, wb = bg.shape[:2]
@@ -298,7 +364,7 @@ def masking(gray, bg):
             # looping background
             by = y % hb
             bx = x % wb
-            if pixel > 245:
+            if pixel > 50:
 
                 result[y, x, 0] = bg[by, bx, 0]
                 result[y, x, 1] = bg[by, bx, 1]

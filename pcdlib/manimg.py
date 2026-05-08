@@ -2,6 +2,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2 as cv
 
+def threshold(image, t=128):
+    h, w = image.shape
+
+    result = np.zeros((h, w), dtype=np.uint8)
+
+    for i in range(h):
+        for j in range(w):
+            if image[i, j] >= t:
+                result[i, j] = 255
+            else:
+                result[i, j] = 0
+
+    return result
+
 def flipping(image, mode='X'):
     h, w = image.shape[:2]
     hasil = np.zeros_like(image)
@@ -15,28 +29,32 @@ def flipping(image, mode='X'):
 
     return hasil
 
-#tipe b: penyatuan sumbu horizontal (kiri-kanan) 
-def mergeHori(citra_1, citra_2): 
-    c1, c2 = np.array(citra_1), np.array(citra_2) 
-    tinggi = max(c1.shape[0], c2.shape[0]) 
-    lebar = c1.shape[1] + c2.shape[1] 
-    # hasil = np.zeros((tinggi, lebar)).astype(int) 
-    hasil = np.zeros((tinggi, lebar), dtype=c1.dtype)
-    hasil[0:c1.shape[0], 0:c1.shape[1]] = c1 
-    hasil[0:c2.shape[0], c1.shape[1]:] = c2 
-    return hasil 
+def merge_image(citra1, citra2, orientation='H'): 
+    if orientation == 'H':   
+        tinggi = max(citra1.shape[0], citra2.shape[0]) 
+        lebar_total = citra1.shape[1] + citra2.shape[1] 
+        if len(citra1.shape) == 2: 
+            gabungan = np.zeros((tinggi, lebar_total), dtype=citra1.dtype) 
+        else: 
+            gabungan = np.zeros((tinggi, lebar_total, citra1.shape[2]), dtype=citra1.dtype) 
 
+        gabungan[0:citra1.shape[0], 0:citra1.shape[1]] = citra1 
+        gabungan[0:citra2.shape[0], citra1.shape[1]:citra1.shape[1]+citra2.shape[1]] = citra2 
 
-#tipe c: penyatuan sumbu vertikal (atas-bawah) 
-def mergeVerti(citra_1, citra_2): 
-    c1, c2 = np.array(citra_1), np.array(citra_2) 
-    tinggi = c1.shape[0] + c2.shape[0] 
-    lebar = max(c1.shape[1], c2.shape[1]) 
-    # hasil = np.zeros((tinggi, lebar)).astype(int) 
-    hasil = np.zeros((tinggi, lebar), dtype=c1.dtype)
-    hasil[0:c1.shape[0], 0:c1.shape[1]] = c1 
-    hasil[c1.shape[0]:, 0:c2.shape[1]] = c2 
-    return hasil
+    else:   
+        tinggi_total = citra1.shape[0] + citra2.shape[0] 
+        lebar = max(citra1.shape[1], citra2.shape[1]) \
+        
+        if len(citra1.shape) == 2: 
+            gabungan = np.zeros((tinggi_total, lebar), dtype=citra1.dtype) 
+        else: 
+            gabungan = np.zeros((tinggi_total, lebar, citra1.shape[2]), dtype=citra1.dtype) 
+
+        gabungan[0:citra1.shape[0], 0:citra1.shape[1]] = citra1 
+        
+        gabungan[citra1.shape[0]:citra1.shape[0]+citra2.shape[0], 0:citra2.shape[1]] = citra2 
+            
+    return gabungan
 
 def rotate(image, angle):
     theta = np.radians(angle)
@@ -219,6 +237,29 @@ def clipping(image_raw):
 
     return hasil
 
+def clipping_rgb(image_raw):
+
+    h, w, c = image_raw.shape
+
+    hasil = np.zeros((h, w, c), dtype=np.uint8)
+
+    for i in range(h):
+        for j in range(w):
+            for k in range(c):
+
+                piksel = image_raw[i, j, k]
+
+                if piksel > 255:
+                    hasil[i, j, k] = 255
+
+                elif piksel < 0:
+                    hasil[i, j, k] = 0
+
+                else:
+                    hasil[i, j, k] = int(piksel)
+
+    return hasil
+
 def histogram(image):
     hist = [0] * 256  # 0-255
     
@@ -227,6 +268,16 @@ def histogram(image):
             hist[pixel] += 1
             
     return hist
+
+def buat_hist(citra): 
+    histogram = [0] * 256 
+    height = len(citra) 
+    width = len(citra[0]) if height > 0 else 0 
+    for i in range(height): 
+        for j in range(width): 
+            val = int(citra[i][j])   
+            histogram[val] += 1   
+    return histogram 
 
 def to_grayscale(image):
     h, w, c = image.shape
